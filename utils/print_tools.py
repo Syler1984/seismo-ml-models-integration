@@ -87,3 +87,13 @@ def plot_wave(data, basename):
 
     plt.savefig(f'{basename}.jpg')
     plt.close()
+
+
+def save_wave(data, basename):
+    try:
+        data = convert_data_to_np(data)
+    except AttributeError as e:
+        print('plot_wave failed with error:\n', e, sep='')
+        return
+
+    np.save(basename, data)

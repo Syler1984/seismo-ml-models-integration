@@ -110,6 +110,18 @@ def archive_scan_args():
                         help='Plots prediction scores '
                              'and saves them as .png images (in current directory)',
                         action='store_true')
+    parser.add_argument('--save-batches',
+                        help='Saves input batches (after preprocessing) '
+                             'as .npy files (in current directory)',
+                        action='store_true')
+    parser.add_argument('--save-batches-raw',
+                        help='Saves input batches (before preprocessing) '
+                             'as .npy files (in current directory)',
+                        action='store_true')
+    parser.add_argument('--save-scores',
+                        help='Save prediction scores '
+                             ' as .npy file (in current directory)',
+                        action='store_true')
     parser.add_argument('--false-positives',
                         help='Path to save false positives into (format .h5). False positives will be gathered '
                              'only if this argument is provided.', default=None)
@@ -139,7 +151,7 @@ def archive_scan_args():
     parser.add_argument('--advanced-search-threshold',
                         help='Positive prediction threshold for advanced search, default: 0.90')
     parser.add_argument('--advanced-search-shift',
-                        help='Sliding windows shift for advanced search, default: 1 sample (1 ms)')
+                        help='Sliding windows shift for advanced search, default: 2 sample (2 ms)')
     parser.add_argument('--advanced-search-all-stations',
                         help='Perform advanced search on full list of stations, not only on stations with detections',
                         action='store_true')
@@ -225,6 +237,9 @@ def archive_scan_dictionary(args):
             'advanced-search-all-stations': 'advanced_search_all_stations',
             'plot-batches': 'plot_batches',
             'plot-scores': 'plot_scores',
+            'save-batches': 'save_batches',
+            'save-batches-raw': 'save_batches_raw',
+            'save-scores': 'save_scores',
         },
     }
 

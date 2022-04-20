@@ -260,6 +260,9 @@ def archive_scan():
         'advanced-search-all-stations': [bool_converter],
         'plot-batches': [bool_converter],
         'plot-scores': [bool_converter],
+        'save-batches': [bool_converter],
+        'save-batches-raw': [bool_converter],
+        'save-scores': [bool_converter],
     }
 
     return d_applied_functions

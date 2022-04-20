@@ -3,7 +3,7 @@ from obspy import read
 from time import time
 
 from ..progress_bar import ProgressBar
-from ..print_tools import plot_wave
+from ..print_tools import plot_wave, save_wave
 import utils.scan_tools as stools
 import utils.seisan as seisan
 
@@ -103,14 +103,21 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
             streams.append(read(path))
 
         # Pre-process data
-        for st in streams:
+        original_streams = None  # copy data if raw data output is required later
+        if params[station_name, 'save-batches-raw']:
+            original_streams = [st.copy() for st in streams]
+        for st in streams:  # preprocess data
             stools.pre_process_stream(st, params, station_name)
 
         # Cut archives to the same length
         if input_mode:
             streams = stools.trim_streams(streams, station_name)
+            if original_streams:
+                original_streams = stools.trim_streams(original_streams, station_name)
         else:
             streams = stools.trim_streams(streams, station_name, archive_start, archive_end)
+            if original_streams:
+                original_streams = stools.trim_streams(streams, station_name, archive_start, archive_end)
 
         if not streams:
             if station_name:
@@ -122,6 +129,9 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
         # Check if stream traces number is equal
         traces_groups, total_data_length = stools.combined_traces(streams, params)
         total_data_progress = 0
+        original_traces_groups = None
+        if original_streams:
+            original_traces_groups, _ = stools.combined_traces(original_streams, params)
 
         if params.data['invalid_combined_traces_groups']:
             print(f'\nWARNING: invalid combined traces groups detected: '
@@ -134,6 +144,10 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
         # Predict
         last_saved_station = None
         for i, traces in enumerate(traces_groups):
+
+            original_traces = None
+            if original_traces_groups:
+                original_traces = original_traces_groups[i]
 
             progress_bar.set_progress(i, level='traces')
 
@@ -162,9 +176,13 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
                 end_pos = start_pos + b_size
                 t_start = traces[0].stats.starttime
 
+                # Prepare batches
                 b_start = t_start + start_pos / freq
                 b_end = t_start + end_pos / freq
                 batches = [trace.slice(b_start, b_end) for trace in traces]
+                original_batches = None
+                if original_traces:
+                    original_batches = [trace.slice(b_start, b_end) for trace in original_traces]
 
                 # Progress bar
                 s_batch_start_time = batches[0].stats.starttime.strftime("%Y-%m-%d %H:%M:%S")
@@ -180,14 +198,26 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
                         'id': f'{s_batch_start_time} .. {s_batch_end_time}',
                     }
 
-                if params[station_name, 'plot-batches']:
+                # Save input data if needed
+                if params[station_name, 'plot-batches'] or params[station_name, 'save-batches']:
                     save_name = 'batch_'
                     if advanced:
                         save_name += 'advanced_'
                     if station_name:
                         save_name += station_name + '_'
                     save_name += b_start.strftime("%Y-%m-%d_%H:%M:%S") + '__' + b_end.strftime("%Y-%m-%d_%H:%M:%S")
-                    plot_wave(batches, save_name)
+                    if params[station_name, 'plot-batches']:
+                        plot_wave(batches, save_name)
+                    if params[station_name, 'save-batches']:
+                        save_wave(batches, save_name)
+                if original_batches and params[station_name, 'save-batches-raw']:
+                    save_name = 'batch_raw_'
+                    if advanced:
+                        save_name += 'advanced_'
+                    if station_name:
+                        save_name += station_name + '_'
+                    save_name += b_start.strftime("%Y-%m-%d_%H:%M:%S") + '__' + b_end.strftime("%Y-%m-%d_%H:%M:%S")
+                    save_wave(original_batches, save_name)
 
                 try:
                     scores, performance_time = stools.scan_traces(*batches,
@@ -212,14 +242,17 @@ def archive_scan(archives, params, input_mode=False, advanced=False):
                                                         (len(batches[0]), len(params['main', 'model-labels'])),
                                                         params[station_name, 'shift'])
 
-                if params[station_name, 'plot-scores']:
+                if params[station_name, 'plot-scores'] or params[station_name, 'save-scores']:
                     save_name = 'scores_'
                     if advanced:
                         save_name += 'advanced_'
                     if station_name:
                         save_name += station_name + '_'
                     save_name += b_start.strftime("%Y-%m-%d_%H:%M:%S") + '__' + b_end.strftime("%Y-%m-%d_%H:%M:%S")
-                    plot_wave(restored_scores, save_name)
+                    if params[station_name, 'plot-scores']:
+                        plot_wave(restored_scores, save_name)
+                    if params[station_name, 'save-scores']:
+                        save_wave(restored_scores, save_name)
 
                 # Get indexes of predicted events
                 predicted_labels = {}

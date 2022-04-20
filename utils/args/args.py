@@ -74,6 +74,9 @@ def defaults():
             'advanced-search-all-stations': False,
             'plot-batches': False,
             'plot-scores': False,
+            'save-batches': False,
+            'save-batches-raw': False,
+            'save-scores': False,
         },
     }
     return defs
