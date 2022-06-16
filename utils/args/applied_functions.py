@@ -203,6 +203,12 @@ def channel_order_converter(value, _, __):
     return [x.split(',') for x in value.strip(',;').split(';')]
 
 
+def rea_check(value, params, __):
+    if value is True:
+        if not params['main', 'rea']:
+            raise AttributeError('Attribute --rea must be set for --rea-compare option to work!')
+    return value
+
 # ----------------------------------------------------------------------------------------
 # Applied functions mappings
 
@@ -263,6 +269,7 @@ def archive_scan():
         'save-batches': [bool_converter],
         'save-batches-raw': [bool_converter],
         'save-scores': [bool_converter],
+        'rea-compare': [bool_converter, rea_check],
     }
 
     return d_applied_functions

@@ -155,6 +155,10 @@ def archive_scan_args():
     parser.add_argument('--advanced-search-all-stations',
                         help='Perform advanced search on full list of stations, not only on stations with detections',
                         action='store_true')
+    parser.add_argument('--rea-compare',
+                        help='Compare predictions with actual events data for the same time period if it exists,'
+                             ' (events data will be taken from --rea path)',
+                        action='store_true')
     return parser.parse_args()
 
 
@@ -240,6 +244,7 @@ def archive_scan_dictionary(args):
             'save-batches': 'save_batches',
             'save-batches-raw': 'save_batches_raw',
             'save-scores': 'save_scores',
+            'rea-compare': 'rea_compare',
         },
     }
 

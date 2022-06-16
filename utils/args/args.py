@@ -14,7 +14,9 @@ def get_unsupported_station_parameters_list():
         # Environment
         'input', 'seisan', 'mulplt-def', 'archives', 'database', 'rea', 'wav',
         # Advanced search
-        'advanced-search', 'advanced-search-range', 'advanced-search-combine', 'advanced-search-all-stations'
+        'advanced-search', 'advanced-search-range', 'advanced-search-combine', 'advanced-search-all-stations',
+        # Model evaluation
+        'rea-compare',
     ]
 
 
@@ -77,6 +79,7 @@ def defaults():
             'save-batches': False,
             'save-batches-raw': False,
             'save-scores': False,
+            'rea-compare': False,
         },
     }
     return defs
